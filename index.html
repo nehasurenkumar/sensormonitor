@@ -1,28 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Show Pipedream Data</title>
+  <title>Pipedream Data Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>Data from Pipedream</h1>
-  <pre id="dataDisplay">Loading data...</pre>
+  <h1>Battery Data Graph</h1>
+  <canvas id="batteryChart" width="600" height="400"></canvas>
 
   <script>
-    fetch('https://eoy5j7h0505i6av.m.pipedream.net')
-      .then(response => response.text())  // get raw text first
-      .then(text => {
-        try {
-          const data = JSON.parse(text); // try parsing as JSON
-          document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
-        } catch (e) {
-          // If parsing fails, probably got HTML
-          document.getElementById('dataDisplay').textContent = 
-            'Error: Received HTML instead of JSON. The Pipedream endpoint may not have data yet.';
-        }
-      })
-      .catch(err => {
-        document.getElementById('dataDisplay').textContent = 'Fetch error: ' + err;
-      });
+    async function fetchData() {
+      try {
+        const response = await fetch('https://eoy5j7h0505i6av.m.pipedream.net');
+        const data = await response.json();
+
+        // Example: Assume data.battery is a number or array of numbers
+        // For demo, let's just make a simple bar chart with that single value
+
+        const ctx = document.getElementById('batteryChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Battery'],
+            datasets: [{
+              label: 'Battery Level',
+              data: [data.battery || 0],
+              backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+          },
+          options: {
+            scales: {
+              y: { beginAtZero: true, max: 100 }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        document.body.insertAdjacentHTML('beforeend', '<p>Error loading data.</p>');
+      }
+    }
+
+    fetchData();
   </script>
 </body>
 </html>
