@@ -1,107 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Live Status Monitor</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Show Pipedream Data</title>
 </head>
 <body>
-  <h1>Live Status Monitor</h1>
-  <div>
-    <p>Battery: <span id="battery">--</span>%</p>
-    <p>Distance: <span id="distance">--</span></p>
-    <p>Tilt: <span id="tilt">--</span></p>
-  </div>
-
-  <canvas id="statusChart" width="600" height="300"></canvas>
+  <h1>Data from Pipedream</h1>
+  <pre id="dataDisplay">Loading data...</pre>
 
   <script>
-    const endpoint = 'https://eoy5j7h0505i6av.m.pipedream.net';
-
-    const ctx = document.getElementById('statusChart').getContext('2d');
-    const chartData = {
-      labels: [],
-      datasets: [
-        {
-          label: 'Battery (%)',
-          borderColor: 'green',
-          data: [],
-          fill: false,
-          yAxisID: 'y',
-        },
-        {
-          label: 'Distance',
-          borderColor: 'blue',
-          data: [],
-          fill: false,
-          yAxisID: 'y1',
-        }
-      ]
-    };
-
-    const config = {
-      type: 'line',
-      data: chartData,
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            type: 'linear',
-            position: 'left',
-            min: 0,
-            max: 100,
-            title: {
-              display: true,
-              text: 'Battery (%)'
-            }
-          },
-          y1: {
-            type: 'linear',
-            position: 'right',
-            min: 0,
-            max: 100,
-            grid: {
-              drawOnChartArea: false,
-            },
-            title: {
-              display: true,
-              text: 'Distance'
-            }
-          }
-        }
-      }
-    };
-
-    const statusChart = new Chart(ctx, config);
-
-    async function updateStatus() {
-      try {
-        const res = await fetch(endpoint);
-        const data = await res.json();
-
-        document.getElementById('battery').textContent = data.battery;
-        document.getElementById('distance').textContent = data.distance;
-        document.getElementById('tilt').textContent = data.tilt;
-
-        const now = new Date().toLocaleTimeString();
-        chartData.labels.push(now);
-        chartData.datasets[0].data.push(data.battery);
-        chartData.datasets[1].data.push(data.distance);
-
-        if (chartData.labels.length > 20) {
-          chartData.labels.shift();
-          chartData.datasets[0].data.shift();
-          chartData.datasets[1].data.shift();
-        }
-
-        statusChart.update();
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-
-    setInterval(updateStatus, 5000);
-    updateStatus();
+    fetch('https://eoy5j7h0505i6av.m.pipedream.net') // replace with your Pipedream URL
+      .then(response => response.json())
+      .then(data => {
+        // Display raw JSON data as pretty-printed text
+        document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById('dataDisplay').textContent = 'Error loading data: ' + err;
+      });
   </script>
 </body>
 </html>
