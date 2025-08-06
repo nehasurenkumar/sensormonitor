@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
   <title>Live Status Monitor</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -15,9 +16,8 @@
   <canvas id="statusChart" width="600" height="300"></canvas>
 
   <script>
-    const endpoint = 'https://eoy5j7h0505i6av.m.pipedream.net'; // Your Pipedream URL here
+    const endpoint = 'https://eoy5j7h0505i6av.m.pipedream.net';
 
-    // Set up Chart.js graph
     const ctx = document.getElementById('statusChart').getContext('2d');
     const chartData = {
       labels: [],
@@ -43,20 +43,29 @@
       type: 'line',
       data: chartData,
       options: {
+        responsive: true,
         scales: {
           y: {
             type: 'linear',
             position: 'left',
             min: 0,
             max: 100,
+            title: {
+              display: true,
+              text: 'Battery (%)'
+            }
           },
           y1: {
             type: 'linear',
             position: 'right',
             min: 0,
-            max: 100, // Adjust if your distance max is different
+            max: 100,
             grid: {
               drawOnChartArea: false,
+            },
+            title: {
+              display: true,
+              text: 'Distance'
             }
           }
         }
@@ -70,20 +79,15 @@
         const res = await fetch(endpoint);
         const data = await res.json();
 
-        // Show current values
         document.getElementById('battery').textContent = data.battery;
         document.getElementById('distance').textContent = data.distance;
         document.getElementById('tilt').textContent = data.tilt;
 
-        // Add time label
         const now = new Date().toLocaleTimeString();
         chartData.labels.push(now);
-
-        // Add data points
         chartData.datasets[0].data.push(data.battery);
         chartData.datasets[1].data.push(data.distance);
 
-        // Keep last 20 points
         if (chartData.labels.length > 20) {
           chartData.labels.shift();
           chartData.datasets[0].data.shift();
@@ -92,13 +96,12 @@
 
         statusChart.update();
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.error('Error fetching data:', error);
       }
     }
 
-    // Fetch every 5 seconds
     setInterval(updateStatus, 5000);
-    updateStatus(); // Initial call
+    updateStatus();
   </script>
 </body>
 </html>
