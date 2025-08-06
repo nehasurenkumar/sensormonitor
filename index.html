@@ -8,14 +8,20 @@
   <pre id="dataDisplay">Loading data...</pre>
 
   <script>
-    fetch('https://eoy5j7h0505i6av.m.pipedream.net') // replace with your Pipedream URL
-      .then(response => response.json())
-      .then(data => {
-        // Display raw JSON data as pretty-printed text
-        document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+    fetch('https://eoy5j7h0505i6av.m.pipedream.net')
+      .then(response => response.text())  // get raw text first
+      .then(text => {
+        try {
+          const data = JSON.parse(text); // try parsing as JSON
+          document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+          // If parsing fails, probably got HTML
+          document.getElementById('dataDisplay').textContent = 
+            'Error: Received HTML instead of JSON. The Pipedream endpoint may not have data yet.';
+        }
       })
       .catch(err => {
-        document.getElementById('dataDisplay').textContent = 'Error loading data: ' + err;
+        document.getElementById('dataDisplay').textContent = 'Fetch error: ' + err;
       });
   </script>
 </body>
