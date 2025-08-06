@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Status Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Live Status Monitor</h1>
+  <div>
+    <p>Battery: <span id="battery">--</span>%</p>
+    <p>Distance: <span id="distance">--</span></p>
+    <p>Tilt: <span id="tilt">--</span></p>
+  </div>
+
+  <canvas id="statusChart" width="600" height="300"></canvas>
+
+  <script>
+    const endpoint = 'https://eoy5j7h0505i6av.m.pipedream.net'; // Your Pipedream URL here
+
+    // Set up Chart.js graph
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    const chartData = {
+      labels: [],
+      datasets: [
+        {
+          label: 'Battery (%)',
+          borderColor: 'green',
+          data: [],
+          fill: false,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Distance',
+          borderColor: 'blue',
+          data: [],
+          fill: false,
+          yAxisID: 'y1',
+        }
+      ]
+    };
+
+    const config = {
+      type: 'line',
+      data: chartData,
+      options: {
+        scales: {
+          y: {
+            type: 'linear',
+            position: 'left',
+            min: 0,
+            max: 100,
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            min: 0,
+            max: 100, // Adjust if your distance max is different
+            grid: {
+              drawOnChartArea: false,
+            }
+          }
+        }
+      }
+    };
+
+    const statusChart = new Chart(ctx, config);
+
+    async function updateStatus() {
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+
+        // Show current values
+        document.getElementById('battery').textContent = data.battery;
+        document.getElementById('distance').textContent = data.distance;
+        document.getElementById('tilt').textContent = data.tilt;
+
+        // Add time label
+        const now = new Date().toLocaleTimeString();
+        chartData.labels.push(now);
+
+        // Add data points
+        chartData.datasets[0].data.push(data.battery);
+        chartData.datasets[1].data.push(data.distance);
+
+        // Keep last 20 points
+        if (chartData.labels.length > 20) {
+          chartData.labels.shift();
+          chartData.datasets[0].data.shift();
+          chartData.datasets[1].data.shift();
+        }
+
+        statusChart.update();
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    }
+
+    // Fetch every 5 seconds
+    setInterval(updateStatus, 5000);
+    updateStatus(); // Initial call
+  </script>
+</body>
+</html>
